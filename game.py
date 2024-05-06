@@ -72,4 +72,3 @@ class Game:
             else:
                 if self.game_update(pos_board, pos_cell, self.player):
                     print(f"player {player} played")
-      

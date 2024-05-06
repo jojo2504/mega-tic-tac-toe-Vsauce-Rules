@@ -2,14 +2,12 @@ import socket
 from _thread import *
 import pickle
 from game import Game
+from config import serverIP
 
-
-hostname = socket.gethostname()
-server = socket.gethostbyname(hostname) 
+server = serverIP
+port = 5555
 
 print(server)
-
-port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
