@@ -5,7 +5,6 @@ class Game:
     def __init__(self, id) -> None:
         self.id = id
         self.ready = False
-        self.game_turn = 0
         self.player = 1 # 1 for player1 | -1 for player2
         self.megaboard = MegaBoard([Board() for _ in range(9)])
         self.board_turn_position = -1 # -1 for any, else 0 to 8
@@ -16,12 +15,6 @@ class Game:
     
     def connected(self):
         return self.ready
-
-    def reset(self):
-        self.game_turn += 1
-
-    def bothWent(self):
-        return self.p1Went and self.p2Went
 
     def game_update(self, board_number, case_position, player):
         if self.megaboard.edit(board_number, case_position, player):
@@ -34,7 +27,11 @@ class Game:
                 self.bonus_turn = True
 
             print("flagged_boards:", self.board_turn_position, self.megaboard.flagged_boards)
-            self.player *= -1
+
+            if not self.bonus_turn:
+                self.player *= -1
+            else:
+                self.bonus_turn = False
 
             if self.megaboard.valid_boards[case_position]:
                 self.board_turn_position = case_position
