@@ -1,27 +1,83 @@
 import socket
+from _thread import *
+import pickle
+from game import Game
 
 
-class Network:
-    def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "YOUR LOCAL IPV4"
-        self.port = 5555
-        self.addr = (self.server, self.port)
-        self.pos = self.connect()
+hostname = socket.gethostname()
+server = socket.gethostbyname(hostname) 
 
-    def getPos(self):
-        return self.pos
+print(server)
 
-    def connect(self):
+port = 5555
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+    s.bind((server, port))
+    print("s binded")
+except socket.error as e:
+    str(e)
+
+s.listen()
+print("Server started, waiting for a connection")
+
+connected = set()
+games = {}
+idCount = 0
+
+def threaded_client(conn, p, gameID):
+    global idCount
+    conn.send(str.encode(str(p)))
+
+    reply = ""
+    while True:
         try:
-            self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
+            data = conn.recv(4096).decode()
+
+            if gameID in games:
+                game = games[gameID]
+
+                if not data:
+                    break
+                else:
+                    if data == "reset":
+                        game.reset()
+                    elif data != "get":
+                        game.play(p, data)
+                    
+                    reply = game
+                    conn.sendall(pickle.dumps(reply))          
+            else:
+                break
         except:
-            pass
+            break
+        
+    print("Lost connection")
+    print("Closing game", gameID)
+    try:
+        del games[gameID]
+    except:
+        pass
 
-    def send(self, data):
-        try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048).decode()
-        except socket.error as e:
-            print(e)
+    idCount -= 1
+    conn.close()
+
+while True:
+    conn, addr = s.accept()
+    print("-"*20)
+    print("connected to:", addr)
+
+    idCount += 1
+    p = 0
+    gamesID = (idCount-1)//2
+    print(idCount)
+
+    if idCount % 2 == 1:
+        games[gamesID] = Game(gamesID)
+        print(f"creating a new game... n°{gamesID}")
+    else:
+        games[gamesID].ready = True
+        p = 1
+
+    start_new_thread(threaded_client, (conn, p, gamesID))
