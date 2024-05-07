@@ -1,8 +1,9 @@
 from board import Board, MegaBoard
 import ast
+from typing import Tuple
 
 class Game:
-    def __init__(self, id) -> None:
+    def __init__(self, id: int) -> None:
         self.id = id
         self.ready = False
         self.player = 1 # 1 for player1 | -1 for player2
@@ -13,20 +14,20 @@ class Game:
 
         print("game init")
     
-    def connected(self):
+    def connected(self) -> bool:
         return self.ready
 
-    def game_update(self, board_number, case_position, player):
+    def game_update(self, board_number: int, case_position: int, player: int) -> bool:
         if self.megaboard.edit(board_number, case_position, player):
             self.megaboard.print_mega_board()
-            if self.megaboard.megaboard[self.board_turn_position].check_completed_board():
-                print(f"Board {self.board_turn_position} has been completed")
-                self.megaboard.valid_boards[self.board_turn_position] = False
-                self.megaboard.flagged_boards[self.board_turn_position] = self.player
+            if self.megaboard.megaboard[board_number].check_completed_board():
+                print(f"Board {board_number} has been completed")
+                self.megaboard.valid_boards[board_number] = False
+                self.megaboard.flagged_boards[board_number] = self.player
                 self.winner = self.megaboard.check_won_game(self.player)
                 self.bonus_turn = True
 
-            print("flagged_boards:", self.board_turn_position, self.megaboard.flagged_boards)
+            print("flagged_boards:", board_number, self.megaboard.flagged_boards)
 
             if not self.bonus_turn:
                 self.player *= -1
@@ -42,7 +43,7 @@ class Game:
         
         return False
 
-    def getPosOnBoard(self, move):
+    def getPosOnBoard(self, move: Tuple[int, int]) -> Tuple[int, int]:
         cell_size = 100
         board_size = 300
         
@@ -54,7 +55,7 @@ class Game:
 
         return pos_board, pos_cell
     
-    def play(self, player, move):
+    def play(self, player: int, move: str) -> None:
         move = ast.literal_eval(move)
         pos_board, pos_cell = self.getPosOnBoard(move)
         
