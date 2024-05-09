@@ -16,6 +16,12 @@ class Game:
     
     def connected(self) -> bool:
         return self.ready
+    
+    def reset(self) -> None:
+        self.winner = None
+        self.bonus_turn = False
+        self.board_turn_position = -1
+        self.megaboard = MegaBoard([Board() for _ in range(9)])
 
     def game_update(self, board_number: int, case_position: int, player: int) -> bool:
         if self.megaboard.edit(board_number, case_position, player):
