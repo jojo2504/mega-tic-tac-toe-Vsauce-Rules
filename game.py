@@ -22,6 +22,7 @@ class Game:
         self.bonus_turn = False
         self.board_turn_position = -1
         self.megaboard = MegaBoard([Board() for _ in range(9)])
+        self.player = 1
 
     def game_update(self, board_number: int, case_position: int, player: int) -> bool:
         if self.megaboard.edit(board_number, case_position, player):
@@ -54,7 +55,7 @@ class Game:
         board_size = 300
         
         mouse_pos_board = (move[0] // board_size, move[1] // board_size)
-        pos_board = mouse_pos_board[0]+mouse_pos_board[1]*3
+        pos_board = mouse_pos_board[0] + mouse_pos_board[1] * 3
 
         mouse_pos_cell_relative_to_board = ((move[0] % board_size) // cell_size, (move[1] % board_size) // cell_size)
         pos_cell = mouse_pos_cell_relative_to_board[0]+mouse_pos_cell_relative_to_board[1]*3
