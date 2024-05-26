@@ -1,4 +1,4 @@
-import socket   
+import socket
 import pickle
 from config import serverIP
 
@@ -26,3 +26,4 @@ class Network:
             return pickle.loads(self.client.recv(2048))
         except socket.error as e:
             print(e)
+            #exit(0)

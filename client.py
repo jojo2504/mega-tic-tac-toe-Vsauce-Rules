@@ -1,13 +1,14 @@
 import pygame
-import game
+from _thread import *
 from network import Network
 from typing import Tuple, NewType
+from server import start_server, Game
 
 pygame.font.init()
 
 width = 900
 height = 900
-win = pygame.display.set_mode((width, height))
+win = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 
 background_color = (255, 255, 255)  # White
 win.fill(background_color)
@@ -23,7 +24,6 @@ cell_size = height // 9
 board_size = height // 3
 
 Surface = NewType("Surface", pygame.Surface)
-Game = NewType("Game", game.Game)
 
 class Button:
     def __init__(self, x, y, width, height, text=''):
@@ -36,8 +36,8 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # If the user clicked on the input_box rect.
             if self.rect.collidepoint(event.pos):
-                print("Trying to connect to the server")
                 return True
+            
         return False
     
     def draw(self, win: Surface):
@@ -45,6 +45,11 @@ class Button:
         win.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
         # Blit the rect.
         pygame.draw.rect(win, self.color, self.rect, 2)
+
+def drawHUD(player):
+    font = pygame.font.SysFont("comicsans", 40)
+    text = font.render(f"you're player {player}", 1, BLACK)
+    win.blit(text, (100, 100))
 
 def offlineMenuBoard(button):
     win.fill(WHITE)
@@ -84,6 +89,8 @@ def drawBoard(color: Tuple[int, int, int], game: Game, player: int, n: Network) 
             pygame.draw.line(win, grid_color, (i * cell_size, 0), (i * cell_size, height))
             pygame.draw.line(win, grid_color, (0, i * cell_size), (height, i * cell_size))
 
+    drawHUD(player)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
@@ -93,7 +100,6 @@ def drawBoard(color: Tuple[int, int, int], game: Game, player: int, n: Network) 
             if player == 0:
                 if game.player == -1:
                     print("its not your turn")
-                    print(game.megaboard.square)
                 else:
                     n.send(pos)
             else:
@@ -113,7 +119,7 @@ def drawMenu():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
-        
+
     return True
 
 def drawWinner(player, n: Network) -> bool:
@@ -140,13 +146,20 @@ def main():
     while True:
         if not offlineMenuBoard(connect_button):
             try:
+                print("Trying to connect to the server")
                 n = Network()
                 player = int(n.getP())
                 pygame.display.set_caption(f"Client {player}")
                 print("You are player", player)
                 break
-            except TypeError as e:
-                print(e)
+            except TypeError:
+                print("No server could be found, creating new one")
+                start_new_thread(start_server, ())
+                n = Network()
+                player = int(n.getP())
+                pygame.display.set_caption(f"Client {player}")
+                print("You are player", player)
+                break
 
     while run:
         clock.tick(60)
@@ -156,7 +169,7 @@ def main():
             run = False 
             print("Couldnt connect")
 
-        if not game.connected():
+        if game is None or not game.connected():
             run = drawMenu()
 
         elif game.winner is None:
@@ -164,10 +177,11 @@ def main():
 
         else:
             if game.winner == 1:  
-                run = drawWinner(0)
+                run = drawWinner(0, n)
             else:
-                run = drawWinner(1)
+                run = drawWinner(1, n)
 
         pygame.display.flip()
 
-main()
+if __name__ == "__main__":
+    main()

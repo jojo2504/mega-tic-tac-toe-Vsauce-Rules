@@ -10,6 +10,7 @@ class Game:
         self.megaboard = MegaBoard([Board() for _ in range(9)])
         self.board_turn_position = -1 # -1 for any, else 0 to 8
         self.bonus_turn = False
+        self.bonus_turn_flag = False
         self.winner = None
 
         print("game init")
@@ -32,7 +33,8 @@ class Game:
                 self.megaboard.valid_boards[board_number] = False
                 self.megaboard.flagged_boards[board_number] = self.player
                 self.winner = self.megaboard.check_won_game(self.player)
-                self.bonus_turn = True
+                if self.bonus_turn_flag:
+                    self.bonus_turn = True
 
             print("flagged_boards:", board_number, self.megaboard.flagged_boards)
 
